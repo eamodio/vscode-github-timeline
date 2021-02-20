@@ -17,8 +17,8 @@ const getRecentPullRequests = async (repositoryName: String, owner: String, limi
 			  }
 			}
 		  }`,
-		owner: "microsoft", // TODO get these values from extension api
-		name: "vscode",
+		owner, // TODO get these values from extension api
+		name: repositoryName,
 		headers: { authorization: `Bearer ${session.accessToken}` },
 	  });
       return res;
