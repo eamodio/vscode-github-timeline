@@ -6,35 +6,38 @@ import { graphql } from '@octokit/graphql';
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export async function activate(context: vscode.ExtensionContext) {
-
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "github-timeline" is now active!');
-
+	console.log('VSCode Github Timeline has started');
 	let session;
 	try {
 		session = await vscode.authentication.getSession('github', ['repo'], { createIfNone: true });
 	} catch (ex) {
-		// TODO: User didn't sign in/give access
+		vscode.window.showInformationMessage('Could not authenticate your GitHub!');
 		return;
 	}
-
-	const api = graphql.defaults({ headers: { authorization: `Bearer ${session.accessToken}` } });
-	// Can make calls by providing a query and args
-	// api(query, {});
-
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with registerCommand
-	// The commandId parameter must match the command field in package.json
-	let disposable = vscode.commands.registerCommand('github-timeline.helloWorld', () => {
-		// The code you place here will be executed every time your command is executed
-
-		// Display a message box to the user
-		vscode.window.showInformationMessage('Hello World from GitHub Timeline!');
-	});
-
-	context.subscriptions.push(disposable);
+	console.log('Created Github Session')
+	// TODO finalize which values to query
+	const res = await graphql({
+		query: `query pullRequests($name: String!, $owner: String!) {
+			repository(name: $name, owner: $owner) {
+			  pullRequests(last: 3) {
+				nodes {
+				  changedFiles
+				  createdAt
+				  body
+				  author {
+					login
+				  }
+				}
+			  }
+			}
+		  }`,
+		owner: "microsoft", // TODO get these values from extension api
+		name: "vscode",
+		headers: { authorization: `Bearer ${session.accessToken}` },
+	  });
+	  console.log('Made test query: ', res);
+	  // TODO hand over PR data to timeline api
 }
 
-// this method is called when your extension is deactivated
+// Called when your extension is deactivated
 export function deactivate() {}
