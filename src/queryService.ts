@@ -5,17 +5,30 @@ const getRecentPullRequests = async (repositoryName: String, owner: String, limi
     const res = await graphql({
 		query: `query pullRequests($name: String!, $owner: String!, $limit: Int!) {
 			repository(name: $name, owner: $owner) {
-			  pullRequests(last: $limit) {
-				nodes {
-				  changedFiles
-				  createdAt
-				  body
-				  author {
-					login
+				pullRequest(number: 116984) {
+				  commits(last: 3) {
+					nodes {
+					  commit {
+						author {
+						  name
+						}
+						message
+					  }
+					}
 				  }
-				}
+				  reviews(last: 3) {
+					edges {
+					  node {
+						author {
+						  avatarUrl
+						  login
+						}
+						updatedAt
+					  }
+					}
+				  }
+				 }
 			  }
-			}
 		  }`,
 		owner, // TODO get these values from extension api
 		name: repositoryName,

@@ -13,30 +13,28 @@ import {
 	TimelineProvider,
 	Uri,
 	workspace,
+	AuthenticationSession,
+	window,
+	authentication
 } from 'vscode';
 // import * as vscode from 'vscode';
  import queryService from './queryService';
 
- export function activate(context: ExtensionContext): void {
+ export async function activate(context: ExtensionContext) {
+	 console.log("Started");
 	context.subscriptions.push(new GithubTimeline());
-}
-
-// export async function activate(context: ExtensionContext) {
-// 	console.log('VSCode Github Timeline has started');
-// 	context.subscriptions.push(new GithubTimeline());
-	// let session: vscode.AuthenticationSession;
+	// let session: AuthenticationSession;
 	// try {
-	// 	session = await vscode.authentication.getSession('github', ['repo'], { createIfNone: true });
+	// 	session = await authentication.getSession('github', ['repo'], { createIfNone: true });
 	// } catch (ex) {
 	//     window.showInformationMessage('Could not authenticate your GitHub!');
 	// 	return;
 	// }
 	// console.log('Created Github Session');
 	// // TODO finalize which values to query
-	//const res = await queryService.getRecentPullRequests("vscode","microsoft",3,session);
-	//console.log('Made test query: ', res);
-	// TODO hand over PR data to timeline api
-// }
+	// const res = await queryService.getRecentPullRequests("vscode","microsoft",3,session);
+	// console.log('Made test query: ', res);
+}
 
 export function deactivate() {}
 
@@ -54,7 +52,7 @@ class GithubActivityItem extends TimelineItem {
 
 		this.description = `description`;
 		this.detail = 'detail';
-		//this.iconPath = new vscode.ThemeIcon('eye');
+		this.iconPath = new ThemeIcon('eye');
 		this.command = {
 			command: 'githubTimeline.openItem',
 			title: '',

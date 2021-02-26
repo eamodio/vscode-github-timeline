@@ -1,7 +1,7 @@
 {
-  "name": "github-timeline",
+  	"name": "github-timeline",
 	"displayName": "GitHub Timeline",
-	"description": "",
+	"description": "Github Timeline for VS code",
 	"version": "0.0.1",
 	"engines": {
 		"vscode": "^1.53.0"
