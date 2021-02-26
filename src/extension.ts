@@ -14,12 +14,16 @@ import {
 	Uri,
 	workspace,
 } from 'vscode';
-import * as vscode from 'vscode';
+// import * as vscode from 'vscode';
  import queryService from './queryService';
 
-export async function activate(context: vscode.ExtensionContext) {
-	console.log('VSCode Github Timeline has started');
+ export function activate(context: ExtensionContext): void {
 	context.subscriptions.push(new GithubTimeline());
+}
+
+// export async function activate(context: ExtensionContext) {
+// 	console.log('VSCode Github Timeline has started');
+// 	context.subscriptions.push(new GithubTimeline());
 	// let session: vscode.AuthenticationSession;
 	// try {
 	// 	session = await vscode.authentication.getSession('github', ['repo'], { createIfNone: true });
@@ -32,11 +36,11 @@ export async function activate(context: vscode.ExtensionContext) {
 	//const res = await queryService.getRecentPullRequests("vscode","microsoft",3,session);
 	//console.log('Made test query: ', res);
 	// TODO hand over PR data to timeline api
-}
+// }
 
 export function deactivate() {}
 
-class GithubActivityItem extends vscode.TimelineItem {
+class GithubActivityItem extends TimelineItem {
 	readonly username: string;
 
 	constructor(id: Number) {
@@ -59,16 +63,16 @@ class GithubActivityItem extends vscode.TimelineItem {
 	}
 }
 
-class GithubTimeline implements vscode.TimelineProvider, vscode.Disposable { 
+class GithubTimeline implements TimelineProvider, Disposable { 
 	readonly id = 'github';
 	readonly label = 'Github Timeline';
 
-	private _onDidChange = new vscode.EventEmitter<vscode.TimelineChangeEvent | undefined>();
+	private _onDidChange = new EventEmitter<TimelineChangeEvent | undefined>();
 	readonly onDidChange = this._onDidChange.event;
 
 	private disposable: Disposable;
 
-	private lastUri: vscode.Uri | undefined;
+	private lastUri: Uri | undefined;
 
 	constructor() {
 		const handle = setInterval(
@@ -76,8 +80,8 @@ class GithubTimeline implements vscode.TimelineProvider, vscode.Disposable {
 			30000,
 		);
 		this.disposable = Disposable.from(
-			vscode.workspace.registerTimelineProvider('*', this),
-			vscode.commands.registerCommand('githubTimeline.openItem', (item: GithubActivityItem) => this.open(item)),
+			workspace.registerTimelineProvider('*', this),
+			commands.registerCommand('githubTimeline.openItem', (item: GithubActivityItem) => this.open(item)),
 			{
 				dispose: () => clearInterval(handle),
 			},

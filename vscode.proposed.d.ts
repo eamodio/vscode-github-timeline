@@ -14,7 +14,7 @@
  * - Copy this file to your project.
  */
 
-declare module 'vscode' {
+ declare module 'vscode' {
 
 	//#region auth provider: https://github.com/microsoft/vscode/issues/88309
 
