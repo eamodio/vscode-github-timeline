@@ -13,6 +13,7 @@ const getRecentPullRequests = async (repositoryName: String, owner: String, limi
 						  name
 						}
 						message
+						committedDate
 					  }
 					}
 				  }
