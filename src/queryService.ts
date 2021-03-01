@@ -1,12 +1,12 @@
 import { graphql } from '@octokit/graphql';
 import { AuthenticationSession } from 'vscode';
 
-const getRecentPullRequests = async (repositoryName: String, owner: String, limit: Number, session: AuthenticationSession) => {
+const getPullRequest = async (session: AuthenticationSession) => {
     const res = await graphql({
-		query: `query pullRequests($name: String!, $owner: String!, $limit: Int!) {
+		query: `query getPullRequest($name: String!, $owner: String!, $limit: Int!) {
 			repository(name: $name, owner: $owner) {
 				pullRequest(number: 116984) {
-				  commits(last: 3) {
+				  commits(last: $limit) {
 					nodes {
 					  commit {
 						author {
@@ -17,7 +17,7 @@ const getRecentPullRequests = async (repositoryName: String, owner: String, limi
 					  }
 					}
 				  }
-				  reviews(last: 3) {
+				  reviews(last: $limit) {
 					edges {
 					  node {
 						author {
@@ -31,12 +31,12 @@ const getRecentPullRequests = async (repositoryName: String, owner: String, limi
 				 }
 			  }
 		  }`,
-		owner, // TODO get these values from extension api
-		name: repositoryName,
-        limit,
+		owner: 'microsoft', // TODO get these values from extension api
+		name: 'vscode',
+        limit: 3,
 		headers: { authorization: `Bearer ${session.accessToken}` },
 	  });
       return res;
 };
 
-export default { getRecentPullRequests };
+export default { getPullRequest };

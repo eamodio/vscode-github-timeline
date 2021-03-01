@@ -23,13 +23,7 @@ import {
  export async function activate(context: ExtensionContext) {
 	 console.log("Started");
 	context.subscriptions.push(new GithubTimeline());
-	// let session: AuthenticationSession;
-	// try {
-	// 	session = await authentication.getSession('github', ['repo'], { createIfNone: true });
-	// } catch (ex) {
-	//     window.showInformationMessage('Could not authenticate your GitHub!');
-	// 	return;
-	// }
+	
 	// console.log('Created Github Session');
 	// // TODO finalize which values to query
 	// const res = await queryService.getRecentPullRequests("vscode","microsoft",3,session);
@@ -41,16 +35,18 @@ export function deactivate() {}
 class GithubActivityItem extends TimelineItem {
 	readonly username: string;
 
-	constructor(id: Number) {
-		const index = id;
-		const label = 'activity label '+id;
+	constructor(object: any ) {
+		if(object.type = 'commit') {
+		object = object.commit;
+		const index = object.id;
+		const label = object.message;
 
-		super(label, Date.now());
+		super(label, Date.parse(object.committedDate));
 
-		this.id = `${id}`;
-		this.username = 'foo username';
+		this.id = `${object.id}`;
+		this.username = object.author.name;
 
-		this.description = `description`;
+		this.description = 'Commit by ' + object.author.name;
 		this.detail = 'detail';
 		this.iconPath = new ThemeIcon('eye');
 		this.command = {
@@ -58,6 +54,7 @@ class GithubActivityItem extends TimelineItem {
 			title: '',
 			arguments: [this],
 		};
+		}
 	}
 }
 
@@ -91,8 +88,23 @@ class GithubTimeline implements TimelineProvider, Disposable {
 		options: TimelineOptions,
 		_token: CancellationToken,
 	): Promise<Timeline | undefined> {
+		let session: AuthenticationSession;
+		try {
+			session = await authentication.getSession('github', ['repo'], { createIfNone: true });
+		} catch (ex) {
+			window.showInformationMessage('Could not authenticate your GitHub!');
+			return;
+		}
+		const response: any = await queryService.getPullRequest(session);
+		console.log(response.repository.pullRequest.commits.nodes);
+		response.repository.pullRequest.commits.nodes.map(res => res.type = 'commit');
 		
-		return undefined;
+		const items = response.repository.pullRequest.commits.nodes.map(commit => new GithubActivityItem(commit));
+
+		console.log('final', items[0]);
+		return {
+			items
+		};
 	}
 
 	dispose() {
