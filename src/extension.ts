@@ -21,13 +21,8 @@ import {
 import queryService from './queryService';
 
 export async function activate(context: ExtensionContext) {
-	console.log("Started");
+	console.log("Started vscode-github-timeline");
 	context.subscriptions.push(new GithubTimeline());
-
-	// console.log('Created Github Session');
-	// // TODO finalize which values to query
-	// const res = await queryService.getRecentPullRequests("vscode","microsoft",3,session);
-	// console.log('Made test query: ', res);
 }
 
 export function deactivate() { }
@@ -46,7 +41,7 @@ class GithubActivityItem extends TimelineItem {
 			this.id = `${object.id}`;
 			this.username = object.author.name;
 
-			this.description = 'Commit by ' + object.author.user.login;
+			this.description = ' by ' + object.author.user.login;
 			this.detail = 'detail';
 			this.iconPath = new ThemeIcon('git-commit');
 			this.command = {
@@ -65,13 +60,29 @@ class GithubActivityItem extends TimelineItem {
 
 			this.description = 'Review by ' + object.author.login;
 			this.detail = 'detail';
-			this.iconPath = new ThemeIcon('eye');
+			this.iconPath = new ThemeIcon('comment-discussion');
 			this.command = {
 				command: 'githubTimeline.openItem',
 				title: '',
 				arguments: [this],
 			};
+		} else if (object.activityType === 'comment') {
+			const index = object.id;
+			const label = object.author.login + ' left a comment';
 
+			super(label, Date.parse(object.createdAt));
+
+			this.id = `${object.id}`;
+			this.username = object.author.login;
+
+			// this.description = 'Review by ' + object.author.login;
+			this.detail = object.body;
+			this.iconPath = new ThemeIcon('comment');
+			this.command = {
+				command: 'githubTimeline.openItem',
+				title: '',
+				arguments: [this],
+			};
 		}
 	}
 }
@@ -122,15 +133,21 @@ class GithubTimeline implements TimelineProvider, Disposable {
 			return new GithubActivityItem(commit);
 		});
 
-		//response.repository.pullRequest.reviews.nodes.map(res => res.activityType = 'review');
-		console.log(response.repository.pullRequest.reviews.nodes);
+		// response.repository.pullRequest.reviews.nodes.map(res => res.activityType = 'review');
+		// console.log(response.repository.pullRequest.reviews.nodes);
 		const reviews = response.repository.pullRequest.reviews.nodes.map(review => {
 			review.activityType = 'review';
-			return new GithubActivityItem(review);
-		});
+			return new GithubActivityItem(review) ;
+		}) as GithubActivityItem[];
+
+		const comments = response.repository.pullRequest.comments.nodes.map(comment => {
+			comment.activityType = 'comment';
+			return new GithubActivityItem(comment) ;	
+		}) as GithubActivityItem[]; 
+
 		console.log('review activity items', reviews);
 		//console.log('reviews',reviews);
-		const items = [...commits, ...reviews];
+		const items = [...commits, ...reviews, ...comments];
 		return {
 			items
 		};
