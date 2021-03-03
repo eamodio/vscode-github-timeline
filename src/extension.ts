@@ -49,8 +49,19 @@ class GithubActivityItem extends TimelineItem {
 					this.id = `${object.id}`;
 					this.username = object.author.name;
 
+					const date = new Date(Date.parse(object.committedDate));
+
+					const formattedDate = date.toLocaleString("en-GB", {
+						month: "short",
+						day: "numeric",
+						year: "numeric",
+						hour: "numeric",
+						minute: "2-digit",
+						hour12: true,
+					});
+
 					this.description = ' by ' + object.author.user.login;
-					this.detail = 'detail';
+					this.detail = object.author.user.name + " (" + object.author.email + ") ---" + object.abbreviatedOid + " \n" + formattedDate + "\n\n" + label;
 					this.iconPath = new ThemeIcon('git-commit');
 					this.command = {
 						command: 'githubTimeline.openItem',
@@ -81,12 +92,12 @@ class GithubActivityItem extends TimelineItem {
 			case (ActivityType.comment): {
 				const index = object.id;
 				const label = object.author.login + ' left a comment';
-	
+
 				super(label, Date.parse(object.createdAt));
-	
+
 				this.id = `${object.id}`;
 				this.username = object.author.login;
-	
+
 				// this.description = 'Review by ' + object.author.login;
 				this.detail = object.body;
 				this.iconPath = new ThemeIcon('comment');
@@ -140,6 +151,7 @@ class GithubTimeline implements TimelineProvider, Disposable {
 		}
 		const response: any = await queryService.getPullRequest(session);
 		//console.log(response.repository.pullRequest.reviews.nodes);
+		console.log(response);
 
 		const commits = response.repository.pullRequest.commits.nodes.map(commit => {
 			commit.activityType = ActivityType.commit;

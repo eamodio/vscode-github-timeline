@@ -10,9 +10,12 @@ const getPullRequest = async (session: AuthenticationSession) => {
 					nodes {
 					  commit {
 						id
+						abbreviatedOid
 						author {
+						  email
 						  user {
 							login
+							name
 						  }
 						}
 						message
