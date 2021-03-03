@@ -1,6 +1,10 @@
 import { graphql } from '@octokit/graphql';
 import { AuthenticationSession } from 'vscode';
 
+/*
+TODO: 
+Adding pagination
+*/
 const getPullRequest = async (session: AuthenticationSession) => {
     const res = await graphql({
 		query: `query getPullRequest($name: String!, $owner: String!, $limit: Int!) {

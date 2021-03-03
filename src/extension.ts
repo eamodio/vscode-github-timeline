@@ -33,6 +33,10 @@ export async function activate(context: ExtensionContext) {
 
 export function deactivate() { }
 
+/*
+TODO: 
+Adding force pushes and assignees
+*/
 class GithubActivityItem extends TimelineItem {
 	readonly username: string;
 
@@ -84,7 +88,7 @@ class GithubActivityItem extends TimelineItem {
 					this.description = comments[0].body;
 					this.detail = comments.map(comment => comment.body).join('\n');
 				}
-				// this.description = 'Review by ' + object.author.login;
+
 				this.iconPath = new ThemeIcon('comment-discussion');
 				this.command = {
 					command: 'githubTimeline.openItem',
@@ -101,7 +105,6 @@ class GithubActivityItem extends TimelineItem {
 				this.id = `${object.id}`;
 				this.username = object.author.login;
 
-				// this.description = 'Review by ' + object.author.login;
 				this.detail = object.body;
 				this.iconPath = new ThemeIcon('comment');
 				this.command = {
@@ -140,6 +143,11 @@ class GithubTimeline implements TimelineProvider, Disposable {
 		);
 	}
 
+	/*
+	TODO :
+	Streamline the authentication process
+	URI integration
+	*/
 	async provideTimeline(
 		uri: Uri,
 		options: TimelineOptions,
@@ -153,16 +161,12 @@ class GithubTimeline implements TimelineProvider, Disposable {
 			return;
 		}
 		const response: any = await queryService.getPullRequest(session);
-		//console.log(response.repository.pullRequest.reviews.nodes);
-		console.log(response);
 
 		const commits = response.repository.pullRequest.commits.nodes.map(commit => {
 			commit.activityType = ActivityType.commit;
 			return new GithubActivityItem(commit);
 		});
 
-		// response.repository.pullRequest.reviews.nodes.map(res => res.activityType = 'review');
-		// console.log(response.repository.pullRequest.reviews.nodes);
 		const reviews = response.repository.pullRequest.reviews.nodes.map(review => {
 			review.activityType = ActivityType.review;
 			return new GithubActivityItem(review);
@@ -173,8 +177,6 @@ class GithubTimeline implements TimelineProvider, Disposable {
 			return new GithubActivityItem(comment);
 		}) as GithubActivityItem[];
 
-		console.log('review activity items', reviews);
-		//console.log('reviews',reviews);
 		const items = [...commits, ...reviews, ...comments];
 		return {
 			items
