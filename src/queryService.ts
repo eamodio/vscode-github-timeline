@@ -2,14 +2,14 @@ import { graphql } from '@octokit/graphql';
 import { AuthenticationSession } from 'vscode';
 
 /*
-TODO: 
+TODO:
 Adding pagination
 */
-const getPullRequest = async (session: AuthenticationSession) => {
+const getPullRequest = async (session: AuthenticationSession, owner: string, repo: string, number: number, limit: number = 6) => {
     const res = await graphql({
-		query: `query getPullRequest($name: String!, $owner: String!, $limit: Int!) {
+		query: `query getPullRequest($name: String!, $owner: String!, $number: Int!, $limit: Int!) {
 			repository(name: $name, owner: $owner) {
-				pullRequest(number: 116984) {
+				pullRequest(number: $number) {
 				  commits(last: $limit) {
 					nodes {
 					  commit {
@@ -55,9 +55,10 @@ const getPullRequest = async (session: AuthenticationSession) => {
 				}
 			  }
 		  }`,
-		owner: 'microsoft', // TODO get these values from extension api
-		name: 'vscode',
-        limit: 6,
+		owner: owner,
+		name: repo,
+		number: number,
+		limit: limit,
 		headers: { authorization: `Bearer ${session.accessToken}` },
 	  });
       return res;

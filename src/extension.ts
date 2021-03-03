@@ -20,6 +20,10 @@ import {
 
 import queryService from './queryService';
 
+const githubTimelineScheme = 'github-timeline-pr';
+const pullRequestRegex = /^(?:(?:https:\/\/)?github.com\/)?([^/]+)\/([^/]+?)(?:\/(?:pull\/([0-9]+)))?(?:\/|$)/i;
+const timelinePullRequestRegex = /^(?:(?:github-timeline-pr:\/\/)?github.com\/)?([^/]+)\/([^/]+?)(?:\/(?:pull\/([0-9]+)))?(?:\/|$)/i;
+
 enum ActivityType {
 	commit,
 	review,
@@ -29,12 +33,27 @@ enum ActivityType {
 export async function activate(context: ExtensionContext) {
 	console.log("Started vscode-github-timeline");
 	context.subscriptions.push(new GithubTimeline());
+
+	context.subscriptions.push(commands.registerCommand(`githubTimeline.showPullRequestActivity`, async () => {
+		const value = await window.showInputBox({
+			placeHolder: 'e.g. https://github.com/microsoft/vscode/pull/123',
+			prompt: 'Enter a GitHub pull request url',
+			validateInput: (value: string) =>
+				pullRequestRegex.test(value) ? undefined : 'Invalid pull request url',
+		});
+
+		if (!value) {
+			return;
+		}
+
+		await commands.executeCommand('files.openTimeline', Uri.parse(value).with({ scheme: githubTimelineScheme }));
+	}));
 }
 
 export function deactivate() { }
 
 /*
-TODO: 
+TODO:
 Adding force pushes and assignees
 */
 class GithubActivityItem extends TimelineItem {
@@ -81,7 +100,7 @@ class GithubActivityItem extends TimelineItem {
 
 				this.id = `${object.id}`;
 				this.username = object.author.login;
-				
+
 				const comments = object.comments.nodes;
 				if (comments.length > 0) {
 					console.log('foo', comments);
@@ -160,7 +179,18 @@ class GithubTimeline implements TimelineProvider, Disposable {
 			window.showInformationMessage('Could not authenticate your GitHub!');
 			return;
 		}
-		const response: any = await queryService.getPullRequest(session);
+
+		let owner = 'microsoft';
+		let repo = 'vscode';
+		let number = '116984';
+		if (uri.scheme === githubTimelineScheme) {
+			const match = timelinePullRequestRegex.exec(uri.toString());
+			if (match) {
+				[, owner, repo, number] = match;
+			}
+		}
+
+		const response: any = await queryService.getPullRequest(session, owner, repo, Number(number));
 
 		const commits = response.repository.pullRequest.commits.nodes.map(commit => {
 			commit.activityType = ActivityType.commit;
