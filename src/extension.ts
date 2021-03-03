@@ -41,7 +41,6 @@ class GithubActivityItem extends TimelineItem {
 			case (ActivityType.commit):
 				{
 					object = object.commit;
-					const index = object.id;
 					const label = object.message;
 
 					super(label, Date.parse(object.committedDate));
@@ -61,15 +60,20 @@ class GithubActivityItem extends TimelineItem {
 				}
 			case (ActivityType.review): {
 				const index = object.id;
-				const label = object.comments.nodes[0].body;
+				const label = object.author.login + ' left a review';
 
 				super(label, Date.parse(object.updatedAt));
 
 				this.id = `${object.id}`;
 				this.username = object.author.login;
-
-				this.description = 'Review by ' + object.author.login;
-				this.detail = 'detail';
+				
+				const comments = object.comments.nodes;
+				if (comments.length > 0) {
+					console.log('foo', comments);
+					this.description = comments[0].body;
+					this.detail = comments.map(comment => comment.body).join('\n');
+				}
+				// this.description = 'Review by ' + object.author.login;
 				this.iconPath = new ThemeIcon('comment-discussion');
 				this.command = {
 					command: 'githubTimeline.openItem',
@@ -79,7 +83,6 @@ class GithubActivityItem extends TimelineItem {
 				break;
 			}
 			case (ActivityType.comment): {
-				const index = object.id;
 				const label = object.author.login + ' left a comment';
 	
 				super(label, Date.parse(object.createdAt));
