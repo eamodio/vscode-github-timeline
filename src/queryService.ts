@@ -4,9 +4,9 @@ import { AuthenticationSession } from 'vscode';
 const getPullRequest = async (session: AuthenticationSession) => {
     const res = await graphql({
 		query: `query getPullRequest($name: String!, $owner: String!, $limit: Int!) {
-			repository(name: "vscode", owner: "microsoft") {
+			repository(name: $name, owner: $owner) {
 				pullRequest(number: 116984) {
-				  commits(last: 3) {
+				  commits(last: $limit) {
 					nodes {
 					  commit {
 						id
@@ -15,7 +15,6 @@ const getPullRequest = async (session: AuthenticationSession) => {
 							login
 						  }
 						}
-						oid
 						message
 						committedDate
 					  }
@@ -29,15 +28,15 @@ const getPullRequest = async (session: AuthenticationSession) => {
 						  login
 						}
 						updatedAt
-						comments(last:  $limit) {
+						comments(last: $limit) {
 						  nodes {
 							body
 						  }
 						}
 					  }
 				  }
-				}
-			}
+				 }
+			  }
 		  }`,
 		owner: 'microsoft', // TODO get these values from extension api
 		name: 'vscode',

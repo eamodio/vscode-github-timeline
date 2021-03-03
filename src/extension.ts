@@ -17,8 +17,14 @@ import {
 	window,
 	authentication
 } from 'vscode';
-// import * as vscode from 'vscode';
+
 import queryService from './queryService';
+
+enum ActivityType {
+	commit,
+	review,
+	comment
+}
 
 export async function activate(context: ExtensionContext) {
 	console.log("Started");
@@ -31,25 +37,6 @@ export async function activate(context: ExtensionContext) {
 }
 
 export function deactivate() { }
-
-interface githubA{
-	type: string,
-	commit: {
-		oid: string,
-		message: string,
-		committedDate: string,
-		author: {
-			name: string
-		}
-	}
-	nodes: {
-		author: {
-			avatarUrl: string,
-			login: string
-		}
-		updatedAt: string
-	}
-}
 
 class GithubActivityItem extends TimelineItem {
 	readonly username: string;
@@ -65,7 +52,7 @@ class GithubActivityItem extends TimelineItem {
 			this.id = `${object.id}`;
 			this.username = object.author.name;
 
-			this.description = 'Commit by ' + object.author.user.login;
+			this.description = object.author.user.login;
 			this.detail = 'detail';
 			this.iconPath = new ThemeIcon('git-commit');
 			this.command = {
@@ -84,32 +71,13 @@ class GithubActivityItem extends TimelineItem {
 
 			this.description = 'Review by ' + object.author.login;
 			this.detail = 'detail';
-			this.iconPath = new ThemeIcon('eye');
+			this.iconPath = new ThemeIcon('comment-discussion');
 			this.command = {
 				command: 'githubTimeline.openItem',
 				title: '',
 				arguments: [this],
 			};
 
-		}
-		else if (object.type = 'review') {
-			// object = object.review;
-			const index = object.id;
-			const label = object.message;
-
-			super(label, Date.parse(object.updatedAt));
-
-			this.id = `${object.id}`;
-			this.username = object.author.name;
-
-			this.description = 'Commit by ' + object.author.name;
-			this.detail = 'detail';
-			this.iconPath = new ThemeIcon('eye');
-			this.command = {
-				command: 'githubTimeline.openItem',
-				title: '',
-				arguments: [this],
-			};
 		}
 	}
 }
@@ -156,14 +124,14 @@ class GithubTimeline implements TimelineProvider, Disposable {
 
 		response.repository.pullRequest.commits.nodes.map(res => res.activityType = 'commit');
 		const commits = response.repository.pullRequest.commits.nodes.map(commit => {
-			commit.activityType = 'commit';
+			commit.activityType = ActivityType.commit;
 			return new GithubActivityItem(commit);
 		});
 
 		//response.repository.pullRequest.reviews.nodes.map(res => res.activityType = 'review');
 		console.log(response.repository.pullRequest.reviews.nodes);
 		const reviews = response.repository.pullRequest.reviews.nodes.map(review => {
-			review.activityType = 'review';
+			review.activityType = ActivityType.review;
 			return new GithubActivityItem(review);
 		});
 		console.log('review activity items', reviews);
