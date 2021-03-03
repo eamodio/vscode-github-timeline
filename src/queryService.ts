@@ -35,12 +35,22 @@ const getPullRequest = async (session: AuthenticationSession) => {
 						}
 					  }
 				  }
-				 }
+				  comments(last: $limit) {
+					nodes {
+					  body
+					  id
+					  createdAt
+					  author {
+						login
+					  }
+					}
+				  }
+				}
 			  }
 		  }`,
 		owner: 'microsoft', // TODO get these values from extension api
 		name: 'vscode',
-        limit: 3,
+        limit: 6,
 		headers: { authorization: `Bearer ${session.accessToken}` },
 	  });
       return res;
