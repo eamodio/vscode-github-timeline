@@ -32,21 +32,40 @@ import {
 
 export function deactivate() {}
 
+interface githubA{
+	type: string,
+	commit: {
+		oid: string,
+		message: string,
+		committedDate: string,
+		author: {
+			name: string
+		}
+	}
+	nodes: {
+		author: {
+			avatarUrl: string,
+			login: string
+		}
+		updatedAt: string
+	}
+}
+
 class GithubActivityItem extends TimelineItem {
 	readonly username: string;
 
-	constructor(object: any ) {
+	constructor(object: githubA ) {
 		if(object.type = 'commit') {
-		object = object.commit;
-		const index = object.id;
-		const label = object.message;
+		const commit = object.commit;
+		const index = commit.oid;
+		const label = commit.message;
 
-		super(label, Date.parse(object.committedDate));
+		super(label, Date.parse(commit.committedDate));
 
-		this.id = `${object.id}`;
-		this.username = object.author.name;
+		this.id = `${commit.oid}`;
+		this.username = commit.author.name;
 
-		this.description = 'Commit by ' + object.author.name;
+		this.description = 'Commit by ' + commit.author.name;
 		this.detail = 'detail';
 		this.iconPath = new ThemeIcon('eye');
 		this.command = {
@@ -54,6 +73,25 @@ class GithubActivityItem extends TimelineItem {
 			title: '',
 			arguments: [this],
 		};
+		}
+		else if (object.type = 'review') {
+			// object = object.review;
+			const index = object.id;
+			const label = object.message;
+
+			super(label, Date.parse(object.updatedAt));
+
+			this.id = `${object.id}`;
+			this.username = object.author.name;
+
+			this.description = 'Commit by ' + object.author.name;
+			this.detail = 'detail';
+			this.iconPath = new ThemeIcon('eye');
+			this.command = {
+				command: 'githubTimeline.openItem',
+				title: '',
+				arguments: [this],
+			};
 		}
 	}
 }
