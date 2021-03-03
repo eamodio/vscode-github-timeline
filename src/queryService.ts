@@ -9,8 +9,11 @@ const getPullRequest = async (session: AuthenticationSession) => {
 				  commits(last: 3) {
 					nodes {
 					  commit {
+						id
 						author {
-						  name
+						  user {
+							login
+						  }
 						}
 						oid
 						message
@@ -18,15 +21,20 @@ const getPullRequest = async (session: AuthenticationSession) => {
 					  }
 					}
 				  }
-				  reviews(last: 3) {
-					nodes{
-            			id
+				  reviews(last: $limit) {
+					nodes {
+						id
 						author {
 						  avatarUrl
 						  login
 						}
 						updatedAt
-					}
+						comments(last:  $limit) {
+						  nodes {
+							body
+						  }
+						}
+					  }
 				  }
 				}
 			}

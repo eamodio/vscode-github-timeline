@@ -18,19 +18,19 @@ import {
 	authentication
 } from 'vscode';
 // import * as vscode from 'vscode';
- import queryService from './queryService';
+import queryService from './queryService';
 
- export async function activate(context: ExtensionContext) {
-	 console.log("Started");
+export async function activate(context: ExtensionContext) {
+	console.log("Started");
 	context.subscriptions.push(new GithubTimeline());
-	
+
 	// console.log('Created Github Session');
 	// // TODO finalize which values to query
 	// const res = await queryService.getRecentPullRequests("vscode","microsoft",3,session);
 	// console.log('Made test query: ', res);
 }
 
-export function deactivate() {}
+export function deactivate() { }
 
 interface githubA{
 	type: string,
@@ -54,25 +54,43 @@ interface githubA{
 class GithubActivityItem extends TimelineItem {
 	readonly username: string;
 
-	constructor(object: githubA ) {
-		if(object.type = 'commit') {
-		const commit = object.commit;
-		const index = commit.oid;
-		const label = commit.message;
+	constructor(object: any) {
+		if (object.activityType === 'commit') {
+			object = object.commit;
+			const index = object.id;
+			const label = object.message;
 
-		super(label, Date.parse(commit.committedDate));
+			super(label, Date.parse(object.committedDate));
 
-		this.id = `${commit.oid}`;
-		this.username = commit.author.name;
+			this.id = `${object.id}`;
+			this.username = object.author.name;
 
-		this.description = 'Commit by ' + commit.author.name;
-		this.detail = 'detail';
-		this.iconPath = new ThemeIcon('eye');
-		this.command = {
-			command: 'githubTimeline.openItem',
-			title: '',
-			arguments: [this],
-		};
+			this.description = 'Commit by ' + object.author.user.login;
+			this.detail = 'detail';
+			this.iconPath = new ThemeIcon('git-commit');
+			this.command = {
+				command: 'githubTimeline.openItem',
+				title: '',
+				arguments: [this],
+			};
+		} else if (object.activityType === 'review') {
+			const index = object.id;
+			const label = object.comments.nodes[0].body;
+
+			super(label, Date.parse(object.updatedAt));
+
+			this.id = `${object.id}`;
+			this.username = object.author.login;
+
+			this.description = 'Review by ' + object.author.login;
+			this.detail = 'detail';
+			this.iconPath = new ThemeIcon('eye');
+			this.command = {
+				command: 'githubTimeline.openItem',
+				title: '',
+				arguments: [this],
+			};
+
 		}
 		else if (object.type = 'review') {
 			// object = object.review;
@@ -96,7 +114,7 @@ class GithubActivityItem extends TimelineItem {
 	}
 }
 
-class GithubTimeline implements TimelineProvider, Disposable { 
+class GithubTimeline implements TimelineProvider, Disposable {
 	readonly id = 'github';
 	readonly label = 'Github Timeline';
 
@@ -134,12 +152,23 @@ class GithubTimeline implements TimelineProvider, Disposable {
 			return;
 		}
 		const response: any = await queryService.getPullRequest(session);
-		console.log(response.repository.pullRequest.commits.nodes);
-		response.repository.pullRequest.commits.nodes.map(res => res.type = 'commit');
-		
-		const items = response.repository.pullRequest.commits.nodes.map(commit => new GithubActivityItem(commit));
+		//console.log(response.repository.pullRequest.reviews.nodes);
 
-		console.log('final', items[0]);
+		response.repository.pullRequest.commits.nodes.map(res => res.activityType = 'commit');
+		const commits = response.repository.pullRequest.commits.nodes.map(commit => {
+			commit.activityType = 'commit';
+			return new GithubActivityItem(commit);
+		});
+
+		//response.repository.pullRequest.reviews.nodes.map(res => res.activityType = 'review');
+		console.log(response.repository.pullRequest.reviews.nodes);
+		const reviews = response.repository.pullRequest.reviews.nodes.map(review => {
+			review.activityType = 'review';
+			return new GithubActivityItem(review);
+		});
+		console.log('review activity items', reviews);
+		//console.log('reviews',reviews);
+		const items = [...commits, ...reviews];
 		return {
 			items
 		};
