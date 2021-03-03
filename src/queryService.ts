@@ -24,6 +24,7 @@ const getPullRequest = async (session: AuthenticationSession, owner: string, rep
 						}
 						message
 						committedDate
+						url
 					  }
 					}
 				  }
@@ -40,6 +41,7 @@ const getPullRequest = async (session: AuthenticationSession, owner: string, rep
 							body
 						  }
 						}
+						url
 					  }
 				  }
 				  comments(last: $limit) {
@@ -50,6 +52,7 @@ const getPullRequest = async (session: AuthenticationSession, owner: string, rep
 					  author {
 						login
 					  }
+					  url
 					}
 				  }
 				}

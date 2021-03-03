@@ -58,6 +58,7 @@ Adding force pushes and assignees
 */
 class GithubActivityItem extends TimelineItem {
 	readonly username: string;
+	readonly url: string;
 
 	constructor(object: any) {
 		switch (object.activityType) {
@@ -90,6 +91,8 @@ class GithubActivityItem extends TimelineItem {
 						title: '',
 						arguments: [this],
 					};
+					this.contextValue = 'githubTimeline:commit';
+					this.url = object.url;
 					break;
 				}
 			case (ActivityType.review): {
@@ -114,6 +117,8 @@ class GithubActivityItem extends TimelineItem {
 					title: '',
 					arguments: [this],
 				};
+				this.contextValue = 'githubTimeline:review';
+				this.url = object.url;
 				break;
 			}
 			case (ActivityType.comment): {
@@ -131,6 +136,8 @@ class GithubActivityItem extends TimelineItem {
 					title: '',
 					arguments: [this],
 				};
+				this.contextValue = 'githubTimeline:comment';
+				this.url = object.url;
 				break;
 			}
 		}
@@ -218,6 +225,6 @@ class GithubTimeline implements TimelineProvider, Disposable {
 	}
 
 	open(item: GithubActivityItem) {
-		return env.openExternal(this.lastUri);
+		return env.openExternal(Uri.parse(item.url));
 	}
 }

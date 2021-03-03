@@ -20,13 +20,23 @@
 		"commands": [
 			{
 				"command": "githubTimeline.openItem",
-				"title": "Open on GitHub"
+				"title": "Open on GitHub",
+				"icon": "$(globe)"
 			},
 			{
 				"command": "githubTimeline.showPullRequestActivity",
 				"title": "Open GitHub Pull Request Timeline"
 			}
 		],
+		"menus": {
+			"timeline/item/context": [
+				{
+					"command": "githubTimeline.openItem",
+					"when": "timelineItem =~ /githubTimeline:.+\\b/",
+					"group": "inline@99"
+				}
+			]
+		},
 		"resourceLabelFormatters": [
 			{
 				"scheme": "github-timeline-pr",
