@@ -9,8 +9,11 @@ const getPullRequest = async (session: AuthenticationSession) => {
 				  commits(last: $limit) {
 					nodes {
 					  commit {
+						id
 						author {
-						  name
+						  user {
+							login
+						  }
 						}
 						message
 						committedDate
@@ -18,15 +21,19 @@ const getPullRequest = async (session: AuthenticationSession) => {
 					}
 				  }
 				  reviews(last: $limit) {
-					edges {
-					  node {
+					nodes {
+						id
 						author {
 						  avatarUrl
 						  login
 						}
 						updatedAt
+						comments(last:  $limit) {
+						  nodes {
+							body
+						  }
+						}
 					  }
-					}
 				  }
 				 }
 			  }
