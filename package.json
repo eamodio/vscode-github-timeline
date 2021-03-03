@@ -19,8 +19,24 @@
 	"contributes": {
 		"commands": [
 			{
-				"command": "github-timeline.helloWorld",
-				"title": "Hello World"
+				"command": "githubTimeline.openItem",
+				"title": "Open on GitHub"
+			},
+			{
+				"command": "githubTimeline.showPullRequestActivity",
+				"title": "Open GitHub Pull Request Timeline"
+			}
+		],
+		"resourceLabelFormatters": [
+			{
+				"scheme": "github-timeline-pr",
+				"authority": "github.com",
+				"formatting": {
+					"label": "Pull Request ${path}",
+					"separator": "/",
+					"workspaceSuffix": "GitHub",
+					"stripPathStartingSeparator": true
+				}
 			}
 		]
 	},
