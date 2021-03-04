@@ -61,8 +61,8 @@ class GithubActivityItem extends TimelineItem {
 	readonly url: string;
 
 	constructor(object: any) {
-		switch (object.activityType) {
-			case (ActivityType.commit):
+		switch (object.__typename) {
+			case ('PullRequestCommit'):
 				{
 					object = object.commit;
 					const label = object.message;
@@ -95,7 +95,7 @@ class GithubActivityItem extends TimelineItem {
 					this.url = object.url;
 					break;
 				}
-			case (ActivityType.review): {
+			case ('PullRequestReview'): {
 				const index = object.id;
 				const label = object.author.login + ' left a review';
 
@@ -106,7 +106,6 @@ class GithubActivityItem extends TimelineItem {
 
 				const comments = object.comments.nodes;
 				if (comments.length > 0) {
-					console.log('foo', comments);
 					this.description = comments[0].body;
 					this.detail = comments.map(comment => comment.body).join('\n');
 				}
@@ -121,7 +120,7 @@ class GithubActivityItem extends TimelineItem {
 				this.url = object.url;
 				break;
 			}
-			case (ActivityType.comment): {
+			case ('Comment'): {
 				const label = object.author.login + ' left a comment';
 
 				super(label, Date.parse(object.createdAt));
@@ -197,26 +196,30 @@ class GithubTimeline implements TimelineProvider, Disposable {
 			}
 		}
 
-		const response: any = await queryService.getPullRequest(session, owner, repo, Number(number));
+		const defaultLimit = 10;
+		if(options.cursor === '' || options.cursor === undefined) {
+			const pageInfo : any = await queryService.getStartPageInfo(session, owner, repo, Number(number), defaultLimit);
+			options.cursor = pageInfo.repository.pullRequest.timelineItems.pageInfo.endCursor;
+		}
+		const response: any = await queryService.getPullRequest(session, owner, repo, Number(number), options.cursor, defaultLimit);
+		
+		const cursor = response.repository.pullRequest.timelineItems.pageInfo.startCursor;
+		console.log(response.repository.pullRequest.timelineItems.pageInfo);
 
-		const commits = response.repository.pullRequest.commits.nodes.map(commit => {
-			commit.activityType = ActivityType.commit;
-			return new GithubActivityItem(commit);
-		});
-
-		const reviews = response.repository.pullRequest.reviews.nodes.map(review => {
-			review.activityType = ActivityType.review;
-			return new GithubActivityItem(review);
+		const items = response.repository.pullRequest.timelineItems.nodes.map(item => {
+			return new GithubActivityItem(item);
 		}) as GithubActivityItem[];
 
-		const comments = response.repository.pullRequest.comments.nodes.map(comment => {
-			comment.activityType = ActivityType.comment;
-			return new GithubActivityItem(comment);
-		}) as GithubActivityItem[];
+		// const comments = response.repository.pullRequest.comments.nodes.map(comment => {
+		// 	comment.activityType = ActivityType.comment;
+		// 	return new GithubActivityItem(comment);
+		// }) as GithubActivityItem[];
 
-		const items = [...commits, ...reviews, ...comments];
+		//const items = [...commits, ...reviews/*, ...comments*/];
+		const hasPreviousPage = response.repository.pullRequest.timelineItems.pageInfo.hasPreviousPage;
 		return {
-			items
+			items,
+			paging: hasPreviousPage ? { cursor } : undefined,
 		};
 	}
 
